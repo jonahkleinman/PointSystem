@@ -12,9 +12,8 @@
 </template>
 
 <script>
-  
   export default {
     name: 'Header',
     props: ['isLoggedIn', 'handleSignOut']
   }
-    </script>
+</script>
