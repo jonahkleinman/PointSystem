@@ -28,5 +28,4 @@ coverage
 *.sw?
 
 .config/
-.env
 houses.txt

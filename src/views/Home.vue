@@ -4,7 +4,7 @@
       <div class="bg-white rounded-lg shadow-lg p-5 text-gray-600">
         <h2 class="text-xl font-bold mb-4 text-gray-600">{{ house.name }} ({{ house.totalPoints }} pts)</h2>
         <ul>
-          <li v-for="member in house.members" :key="member.id" class="group">
+          <li v-for="member in house.members" :key="member.key" class="group">
             <div class="flex justify-between items-center p-2">
               <span class="font-medium">{{ member.name }}</span>
               <span class="text-sm font-semibold text-gray-600">{{ member.points }} pts</span>
@@ -16,27 +16,52 @@
   </div>
 </template>
 
-
 <script>
+import { collection, getDocs } from 'firebase/firestore';
+import db from '../main.js';
+
 export default {
   name: 'Home',
   data() {
     return {
-      houses: [
-        //TODO: Add db houses logic
-      ],
-          };
-        },
-        computed: {
-          housesWithTotal() {
-            return this.houses.map(house => ({
-              ...house,
-              totalPoints: house.members.reduce((sum, member) => sum + member.points, 0)
-            }));
-          }
-        },
-      };
-</script>
+      houses: [],
+    };
+  },
+  computed: {
+    housesWithTotal() {
+      return this.houses.map(house => ({
+        ...house,
+        totalPoints: house.members.reduce((sum, member) => sum + member.points, 0),
+      }));
+    },
+  },
+  async created() {
+    const houseNames = { a: 'Academic', i: 'Integrity', k: 'Kindness', r: 'Respect' };
+    const membersCollectionRef = collection(db, 'members');
+    const membersSnapshot = await getDocs(membersCollectionRef);
+    const housesData = {};
 
-<style>
-</style>
+    Object.keys(houseNames).forEach(code => {
+      housesData[code] = { id: code, name: houseNames[code], members: [], totalPoints: 0 };
+    });
+
+    membersSnapshot.forEach((doc, index) => {
+      let memberData = doc.data();
+      let houseCode = memberData.house;
+      let memberName = doc.id;
+      let memberPoints = memberData.points;
+
+      if (housesData[houseCode]) {
+        housesData[houseCode].members.push({
+          key: index,
+          name: memberName,
+          points: memberPoints,
+        });
+        housesData[houseCode].totalPoints += memberPoints;
+      }
+    });
+
+    this.houses = Object.values(housesData);
+  },
+};
+</script>

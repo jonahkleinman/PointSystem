@@ -3,7 +3,9 @@ import App from './App.vue'
 import router from './router'
 import './index.css'
 import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
+console.log(import.meta.env.VITE_APP_KEY)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_APP_KEY,
   authDomain: "ed-points.firebaseapp.com",
@@ -14,5 +16,9 @@ const firebaseConfig = {
   measurementId: "G-0FXTZ3ZLXT"
 };
 
-initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+export default db
+
 createApp(App).use(router).mount('#app')

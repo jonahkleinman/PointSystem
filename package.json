@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "firebase": "^10.10.0",
+    "firebase": "^10.11.0",
     "tesseract.js": "^5.0.5",
     "vue": "^3.3.4",
     "vue-router": "^4.3.0",
