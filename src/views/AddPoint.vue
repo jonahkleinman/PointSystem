@@ -35,14 +35,6 @@
   const fetchnamesAndMembers = async () => {
     const membersSnapshot = await getDocs(collection(db, 'members'))
     membersSnapshot.forEach(async memberDoc => {
-      const nameName = memberDoc.id
-      names.value.push(nameName)
-      members.value[nameName] = []
-
-      const namesSnapshot = await getDocs(collection(db, 'members', memberDoc.id, 'names'))
-      namesSnapshot.forEach(nameDoc => {
-        members.value[nameName].push(nameDoc.id)
-      })
     })
   }
 
@@ -55,5 +47,6 @@
   }
 
   const submitPoints = () => {
+    //TODO: add submit logic here
   }
 </script>

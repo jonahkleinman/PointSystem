@@ -30,13 +30,13 @@ export default {
   computed: {
     housesWithTotal() {
       return this.houses.map(house => ({
-        ...house,
+        ...house, // copies properties of the current house object using the sprwad operastor
         totalPoints: house.members.reduce((sum, member) => sum + member.points, 0),
       }));
     },
   },
-  async created() {
-    const houseNames = { a: 'Academic', i: 'Integrity', k: 'Kindness', r: 'Respect' };
+  async created() { //lifecycle
+    const houseNames = { a: 'Academic', i: 'Integrity', k: 'Kindness', r: 'Respect' }; //obj w house names
     const membersCollectionRef = collection(db, 'members');
     const membersSnapshot = await getDocs(membersCollectionRef);
     const housesData = {};
@@ -51,13 +51,13 @@ export default {
       let memberName = doc.id;
       let memberPoints = memberData.points;
 
-      if (housesData[houseCode]) {
-        housesData[houseCode].members.push({
+      if (housesData[houseCode]) { // if house exists
+        housesData[houseCode].members.push({ //add new member to array
           key: index,
           name: memberName,
           points: memberPoints,
         });
-        housesData[houseCode].totalPoints += memberPoints;
+        housesData[houseCode].totalPoints += memberPoints; // update points
       }
     });
 
