@@ -5,7 +5,7 @@
         <h2 class="text-xl font-bold mb-4 text-gray-600">{{ house.name }} ({{ house.totalPoints }} pts)</h2>
         <ul>
           <li v-for="member in house.members" :key="member.key" class="group">
-            <div class="flex justify-between items-center p-2">
+            <div v-bind:class="{'flex justify-between items-center p-2': true, 'bg-blue-100': member.name === 'Challenges'}">
               <span class="font-medium">{{ member.name }}</span>
               <span class="text-sm font-semibold text-gray-600">{{ member.points }} pts</span>
             </div>
@@ -30,19 +30,34 @@ export default {
   computed: {
     housesWithTotal() {
       return this.houses.map(house => ({
-        ...house, // copies properties of the current house object using the sprwad operastor
-        totalPoints: house.members.reduce((sum, member) => sum + member.points, 0),
+        ...house,
+        totalPoints: house.members.reduce((sum, member) => {
+          return member.name === 'Challenges' ? sum : sum + member.points;
+        }, 0) + house.challengePoints,
       }));
     },
   },
-  async created() { //lifecycle
-    const houseNames = { a: 'Academic', i: 'Integrity', k: 'Kindness', r: 'Respect' }; //obj w house names
+  async created() {
+    const houseNames = { a: 'Academic', i: 'Integrity', k: 'Kindness', r: 'Respect' };
+    const challengePoints = { a: 10, i: 3, k: 5, r: 1 };
     const membersCollectionRef = collection(db, 'members');
     const membersSnapshot = await getDocs(membersCollectionRef);
     const housesData = {};
 
     Object.keys(houseNames).forEach(code => {
-      housesData[code] = { id: code, name: houseNames[code], members: [], totalPoints: 0 };
+      housesData[code] = {
+        id: code,
+        name: houseNames[code],
+        members: [],
+        totalPoints: 0,
+        challengePoints: challengePoints[code] || 0,
+      };
+
+      housesData[code].members.push({
+        key: `challenge-${code}`,
+        name: 'Challenges',
+        points: challengePoints[code] || 0,
+      });
     });
 
     membersSnapshot.forEach((doc, index) => {
@@ -51,13 +66,12 @@ export default {
       let memberName = doc.id;
       let memberPoints = memberData.points;
 
-      if (housesData[houseCode]) { // if house exists
-        housesData[houseCode].members.push({ //add new member to array
+      if (housesData[houseCode]) {
+        housesData[houseCode].members.push({
           key: index,
           name: memberName,
           points: memberPoints,
         });
-        housesData[houseCode].totalPoints += memberPoints; // update points
       }
     });
 
@@ -65,3 +79,5 @@ export default {
   },
 };
 </script>
+
+
