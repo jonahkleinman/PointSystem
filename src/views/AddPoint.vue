@@ -2,17 +2,10 @@
   <div class="flex flex-col items-center justify-center bg-gray-900 min-h-screen">
     <form @submit.prevent="submitPoints" class="bg-white text-gray-900 p-6 rounded shadow-md">
       <div class="mb-4">
-        <label for="house" class="block text-gray-700 text-sm font-bold mb-2">Select Your House:</label>
-        <select id="house" v-model="selectedHouse" @change="updateMembers" class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
-          <option disabled value="">Please select one</option>
-          <option v-for="house in houses" :key="house" :value="house">{{ house }}</option>
-        </select>
-      </div>
-      <div class="mb-4" v-if="selectedHouseMembers.length > 0">
         <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Select Your Name:</label>
         <select id="name" v-model="selectedName" class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
           <option disabled value="">Please select one</option>
-          <option v-for="name in selectedHouseMembers" :key="name" :value="name">{{ name }}</option>
+          <option v-for="name in members" :key="name" :value="name">{{ name }}</option>
         </select>
       </div>
       <div class="mb-4">
@@ -31,40 +24,49 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore'
-import db from '../main.js' // Ensure this points to your Firebase configuration
+import { ref } from 'vue';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
+import db from '../main.js';
 
-const selectedHouse = ref('')
-const houses = ref([]) // This will be populated with house names from the database
-const members = ref({}) // This will be populated with members from the database
-const selectedHouseMembers = ref([])
+const members = ref([]);
+const selectedName = ref('');
+const points = ref(0);
+const reason = ref('');
 
-// Fetch houses and members from the database
-const fetchHousesAndMembers = async () => {
-  const membersSnapshot = await getDocs(collection(db, 'members'))
-  membersSnapshot.forEach(async memberDoc => {
-    const houseName = memberDoc.id // Assuming the document ID is the house name
-    houses.value.push(houseName)
-    members.value[houseName] = []
+const fetchMembers = async () => {
+  const membersSnapshot = await getDocs(collection(db, 'members'));
+  membersSnapshot.forEach(memberDoc => {
+    members.value.push(memberDoc.id);
+  });
+};
 
-    // Fetch each member's name from the subcollection
-    const namesSnapshot = await getDocs(collection(db, 'members', memberDoc.id, 'names'))
-    namesSnapshot.forEach(nameDoc => {
-      members.value[houseName].push(nameDoc.id) // Assuming the document ID is the member's name
-    })
-  })
-}
+fetchMembers();
 
-onMounted(() => {
-  fetchHousesAndMembers()
-})
+const submitPoints = async () => {
+  if (!selectedName.value || points.value <= 0 || !reason.value) {
+    alert('Please fill in all fields.');
+    return;
+  }
 
-const updateMembers = () => {
-  selectedHouseMembers.value = members.value[selectedHouse.value] || []
-}
+  try {
+    const docRef = await addDoc(collection(db, 'pending'), {
+      memberId: selectedName.value,
+      points: points.value,
+      reason: reason.value,
+      status: 'pending',
+      timestamp: new Date()
+    });
 
-const submitPoints = () => {
-  // Handle the submission logic here
-}
+    selectedName.value = '';
+    points.value = 0;
+    reason.value = '';
+    alert('Your points request has been submitted for approval.');
+  } catch (e) {
+    console.error('Error adding document: ', e);
+    alert('There was an error submitting your points request.');
+  }
+};
 </script>
+
+<style scoped>
+</style>
