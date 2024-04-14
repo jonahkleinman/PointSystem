@@ -24,8 +24,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import {onMounted, ref} from 'vue';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
+import {getAuth, onAuthStateChanged} from "firebase/auth"
 import db from '../main.js';
 
 const members = ref([]);
@@ -41,7 +42,17 @@ const fetchMembers = async () => {
 };
 
 fetchMembers();
+const userEmail = ref(null);
+let auth;
 
+onMounted(() => {
+  auth = getAuth();
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      userEmail.value = user.email;
+    }
+  });
+});
 const submitPoints = async () => {
   if (!selectedName.value || points.value <= 0 || !reason.value) {
     alert('Please fill in all fields.');
@@ -54,7 +65,8 @@ const submitPoints = async () => {
       points: points.value,
       reason: reason.value,
       status: 'pending',
-      timestamp: new Date()
+      timestamp: new Date(),
+      userEmail: userEmail.value
     });
 
     selectedName.value = '';

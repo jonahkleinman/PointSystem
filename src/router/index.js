@@ -49,16 +49,28 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  await new Promise((resolve, reject) => {
+    if (!auth) {
+      auth = getAuth();
+    }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      isLoggedIn.value = !!user;
+      unsubscribe();
+      resolve();
+    }, reject);
+  });
+
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-  if (getAuth().currentUser) {
-    next();
+    if (isLoggedIn.value) {
+      next();
+    } else {
+      next('/login');
+    }
   } else {
-    next('/')
-  }
-  } else {
     next();
   }
-})
+});
+
 
 export default router
