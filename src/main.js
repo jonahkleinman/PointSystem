@@ -5,7 +5,6 @@ import './index.css'
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
-console.log(import.meta.env.VITE_APP_KEY)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_APP_KEY,
   authDomain: "ed-points.firebaseapp.com",

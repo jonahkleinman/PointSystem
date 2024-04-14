@@ -34,7 +34,6 @@
   const login = () => {
     signInWithEmailAndPassword(getAuth(), email.value, password.value)
       .then((data) => {
-    console.log('Successfully registered!')
         router.push('/')
     })
       .catch((error) => {

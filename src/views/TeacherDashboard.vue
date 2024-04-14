@@ -34,7 +34,6 @@ export default {
   },
   methods: {
     async fetchPendingRequests() {
-      console.log('Fetching pending requests...');
       try {
         const querySnapshot = await getDocs(collection(db, 'pending'));
         this.pendingRequests = [];
@@ -72,7 +71,6 @@ export default {
 
           transaction.update(requestRef, { status: 'approved' });
         });
-        console.log('Transaction successfully committed!');
         this.fetchPendingRequests();
       } catch (e) {
         console.error("Transaction failed: ", e);
