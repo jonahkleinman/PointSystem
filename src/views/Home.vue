@@ -1,17 +1,24 @@
 <template>
-  <div class="bg-gray-900 flex flex-wrap items-center justify-center p-10 gap-10" style="height: 86vh;">
-    <div v-for="house in housesWithTotal" :key="house.id" class="w-1/3 p-5">
-      <div class="bg-white rounded-lg shadow-lg p-5 text-gray-600">
-        <h2 class="text-xl font-bold mb-4 text-gray-600">{{ house.name }} ({{ house.totalPoints }} pts)</h2>
-        <ul>
-          <li v-for="member in house.members" :key="member.key" class="group">
-            <div v-bind:class="{'flex justify-between items-center p-2': true, 'bg-blue-100': member.name === 'Challenges'}">
-              <span class="font-medium">{{ member.name }}</span>
-              <span class="text-sm font-semibold text-gray-600">{{ member.points }} pts</span>
-            </div>
-          </li>
-        </ul>
+  <div class="bg-gray-900 flex flex-col items-center justify-center p-10 gap-10">
+    <!-- Removed button element -->
+    <div class="flex flex-row flex-wrap justify-center w-full">
+      <div v-for="house in housesWithTotal" :key="house.id" class="w-1/3 p-5">
+        <div :class="['rounded-lg shadow-lg p-5', getHouseColor(house.name), 'text-gray-600']">
+          <h2 class="text-xl font-bold mb-4">{{ house.name }} ({{ house.totalPoints }} pts)</h2>
+          <ul>
+            <li v-for="member in house.members" :key="member.key" class="group">
+              <div class="flex justify-between items-center p-2">
+                <span class="font-medium">{{ member.name }}</span>
+                <span class="text-sm font-semibold">{{ member.points }} pts</span>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
+    </div>
+    <hr class="border-t border-gray-700 w-full">
+    <div class="w-full max-w-lg mx-auto">
+      <canvas id="pointsGraph" class="w-full h-auto"></canvas>
     </div>
   </div>
 </template>
@@ -19,6 +26,7 @@
 <script>
 import { collection, getDocs } from 'firebase/firestore';
 import db from '../main.js';
+import Chart from 'chart.js/auto';
 
 export default {
   name: 'Home',
@@ -36,6 +44,51 @@ export default {
         }, 0) + house.challengePoints,
       }));
     },
+  },
+  methods: {
+    getHouseColor(houseName) {
+      const colors = {
+        'Academic': 'bg-blue-300',
+        'Kindness': 'bg-red-300',
+        'Integrity': 'bg-orange-300',
+        'Respect': 'bg-gray-300'
+      };
+      return colors[houseName] || 'bg-white';
+    },
+    createGraph() {
+      const ctx = document.getElementById('pointsGraph').getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: this.housesWithTotal.map(house => house.name),
+          datasets: [{
+            label: 'Total Points',
+            data: this.housesWithTotal.map(house => house.totalPoints),
+            backgroundColor: this.housesWithTotal.map(house => {
+              switch (house.name) {
+                case 'Academic':
+                  return '#63b3ed';
+                case 'Kindness':
+                  return '#fc8181';
+                case 'Integrity':
+                  return '#f6ad55';
+                case 'Respect':
+                  return '#e2e8f0';
+                default:
+                  return '#ffffff';
+              }
+            }),
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
   },
   async created() {
     const houseNames = { a: 'Academic', i: 'Integrity', k: 'Kindness', r: 'Respect' };
@@ -76,8 +129,10 @@ export default {
     });
 
     this.houses = Object.values(housesData);
+    this.$nextTick(() => {
+      this.createGraph();
+    });
+
   },
 };
 </script>
-
-

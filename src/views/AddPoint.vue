@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-center bg-gray-900 min-h-screen">
+  <div class="flex flex-col items-center justify-center bg-gray-900" style="height: 85vh">
     <form @submit.prevent="submitPoints" class="bg-white text-gray-900 p-6 rounded shadow-md">
       <div class="mb-4">
         <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Select Your Name:</label>
