@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import AddPoint from '@/views/AddPoint.vue'
-import TeacherDashboard from '@/views/TeacherDashboard.vue'
+import Admin from '@/views/Admin.vue'
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 import { onMounted, ref } from 'vue'
 
@@ -40,7 +40,7 @@ const routes = [
   {
     path: '/admin',
     name: 'Admin',
-    component: TeacherDashboard,
+    component: Admin,
     meta: {
       requiresAuth: true,
     }
