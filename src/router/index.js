@@ -24,7 +24,10 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: Login
+    component: Login,
+    meta: {
+      requiresUnauth: true,
+    }
   },
   {
     path: '/add',
@@ -67,10 +70,17 @@ router.beforeEach(async (to, from, next) => {
     } else {
       next('/login');
     }
+  } else if (to.matched.some((record) => record.meta.requiresUnauth)) {
+    if (!isLoggedIn.value) {
+      next();
+    } else {
+      next('/');
+    }
   } else {
     next();
   }
 });
+
 
 
 export default router
