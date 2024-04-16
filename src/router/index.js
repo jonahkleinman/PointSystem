@@ -66,21 +66,22 @@ router.beforeEach(async (to, from, next) => {
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (isLoggedIn.value) {
-      next();
+      const userId = auth.currentUser?.uid;
+      if (to.name === 'Admin') {
+        if (userId === 'DB9ljAWIxZUaHSKoVL8jbYao4u32') {
+          next();
+        } else {
+          next('/');
+        }
+      } else {
+        next();
+      }
     } else {
       next('/login');
-    }
-  } else if (to.matched.some((record) => record.meta.requiresUnauth)) {
-    if (!isLoggedIn.value) {
-      next();
-    } else {
-      next('/');
     }
   } else {
     next();
   }
 });
-
-
 
 export default router
