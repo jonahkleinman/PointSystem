@@ -29,3 +29,5 @@ coverage
 
 .config/
 houses.txt
+.replit
+.replit.nix
