@@ -32,7 +32,7 @@ const handleSignOut = () => {
   signOut(auth).then(() => {
     isLoggedIn.value = false;
     isAdmin.value = false;
-    router.push('/')
+    router.push('/login')
   })
 }
 defineExpose({ handleSignOut })
