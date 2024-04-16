@@ -1,23 +1,33 @@
 <template>
-  <div class="p-4">
-    <h1 class="text-2xl font-bold mb-4">Pending Points</h1>
-    <div class="space-y-3">
-      <div v-for="request in pendingRequests" :key="request.id" class="p-4 border rounded shadow-sm">
+  <div class="p-4 max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Requests</h1>
+    <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+      <select v-model="selectedStatus" class="block w-full md:w-auto form-select px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding bg-no-repeat border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none">
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="denied">Denied</option>
+        <option value="all">All</option>
+      </select>
+      <input type="text" v-model="searchName" placeholder="Filter by student name" class="block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" />
+    </div>
+    <div class="space-y-4">
+      <div v-for="request in filteredRequests" :key="request.id" class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
         <div class="flex justify-between items-center">
           <div>
-            <h2 class="font-semibold">{{ request.memberId }}</h2>
-            <p>Points: {{ request.points }}</p>
-            <p>Reason: {{ request.reason }}</p>
+            <h2 class="font-semibold text-lg text-gray-800">{{ request.memberId }}</h2>
+            <p class="text-gray-600">Points: {{ request.points }}</p>
+            <p class="text-gray-600">Reason: {{ request.reason }}</p>
           </div>
-          <div>
-            <button @click="approveRequest(request.id)" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Approve</button>
-            <button @click="denyRequest(request.id)" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 ml-2">Deny</button>
+          <div v-if="selectedStatus === 'pending'">
+            <button @click="approveRequest(request.id)" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Approve</button>
+            <button @click="denyRequest(request.id)" class="text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Deny</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import db from '../main.js';
@@ -27,25 +37,54 @@ export default {
   data() {
     return {
       pendingRequests: [],
+      approvedRequests: [],
+      deniedRequests: [],
+      selectedStatus: 'pending',
+      searchName: '',
     };
   },
+  computed: {
+    filteredRequests() {
+      let requests = [];
+      if (this.selectedStatus === 'all') {
+        requests = [...this.pendingRequests, ...this.approvedRequests, ...this.deniedRequests];
+      } else if (this.selectedStatus === 'pending') {
+        requests = this.pendingRequests;
+      } else if (this.selectedStatus === 'approved') {
+        requests = this.approvedRequests;
+      } else if (this.selectedStatus === 'denied') {
+        requests = this.deniedRequests;
+      }
+      if (this.searchName) {
+        requests = requests.filter(request =>
+            request.memberId && request.memberId.toLowerCase().includes(this.searchName.toLowerCase())
+        );
+      }
+      return requests;
+    },
+  },
   async created() {
-    await this.fetchPendingRequests();
+    await this.fetchRequests();
   },
   methods: {
-    async fetchPendingRequests() {
+    async fetchRequests() {
       try {
         const querySnapshot = await getDocs(collection(db, 'pending'));
         this.pendingRequests = [];
+        this.approvedRequests = [];
+        this.deniedRequests = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           if (data.status === 'pending') {
-            console.log('Document data:', data);
             this.pendingRequests.push({ id: doc.id, ...data });
+          } else if (data.status === 'approved') {
+            this.approvedRequests.push({ id: doc.id, ...data });
+          } else if (data.status === 'denied') {
+            this.deniedRequests.push({ id: doc.id, ...data });
           }
         });
       } catch (error) {
-        console.error("Error fetching pending requests:", error);
+        console.error("Error fetching requests:", error);
       }
     },
     async approveRequest(requestId) {
@@ -71,7 +110,7 @@ export default {
 
           transaction.update(requestRef, { status: 'approved' });
         });
-        this.fetchPendingRequests();
+        this.fetchRequests();
       } catch (e) {
         console.error("Transaction failed: ", e);
       }
@@ -81,7 +120,7 @@ export default {
       await updateDoc(requestRef, {
         status: 'denied',
       });
-      this.fetchPendingRequests();
+      this.fetchRequests();
     },
   },
 };
