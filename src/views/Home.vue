@@ -1,6 +1,5 @@
 <template>
   <div class="bg-gray-900 flex flex-col items-center justify-center p-10 gap-10">
-    <!-- Removed button element -->
     <div class="flex flex-row flex-wrap justify-center w-full">
       <div v-for="house in housesWithTotal" :key="house.id" class="w-1/3 p-5">
         <div :class="['rounded-lg shadow-lg p-5', getHouseColor(house.name), 'text-gray-600']">

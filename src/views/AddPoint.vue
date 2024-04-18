@@ -37,6 +37,7 @@ import { ref, onMounted } from 'vue';
 import { collection, getDocs, query, where, addDoc, doc, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import db from '../main.js';
+import router from '../router'
 
 const members = ref([]);
 const selectedName = ref('');
@@ -103,9 +104,9 @@ const submitPoints = async () => {
       points.value = 0;
       reason.value = '';
       existingDocRef.value = null;
+      router.push('/pending');
     });
   } else {
-    // Create a new document
     await addDoc(collection(db, 'pending'), {
       memberId: selectedName.value,
       points: points.value,
@@ -118,6 +119,7 @@ const submitPoints = async () => {
       selectedName.value = '';
       points.value = 0;
       reason.value = '';
+      router.push('/pending');
     });
   }
 };

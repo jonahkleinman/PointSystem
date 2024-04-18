@@ -3,6 +3,7 @@ import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import AddPoint from '@/views/AddPoint.vue'
 import Admin from '@/views/Admin.vue'
+import Pending from '@/views/Pending.vue'
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 import { onMounted, ref } from 'vue'
 
@@ -36,6 +37,11 @@ const routes = [
     meta: {
       requiresAuth: true,
     }
+  },
+  {
+    path: '/pending',
+    name: 'Pending',
+    component: Pending,
   },
   {
     path: '/admin',

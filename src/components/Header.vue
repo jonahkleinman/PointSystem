@@ -4,6 +4,7 @@
       <div class="flex space-x-4">
         <router-link to="/" class="hover:text-blue-400 transition duration-300 ease-in-out">Home</router-link>
         <router-link to="/add" v-if='isLoggedIn' class="hover:text-blue-400 transition duration-300 ease-in-out">Add Points</router-link>
+        <router-link to="/pending" class="hover:text-blue-400 transition duration-300 ease-in-out">Pending</router-link>
         <router-link to="/login" v-if='!isLoggedIn' class="hover:text-blue-400 transition duration-300 ease-in-out">Login</router-link>
         <router-link to="/admin" v-if="isAdmin" class="hover:text-blue-400 transition duration-300 ease-in-out">Admin</router-link>
       </div>
