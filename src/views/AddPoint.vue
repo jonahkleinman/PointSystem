@@ -21,61 +21,104 @@
       </div>
     </form>
   </div>
+  <div v-if="showModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
+    <div class="bg-white p-4 rounded">
+      <p class="text-black">You already have a pending points submission. Would you like to edit it?</p>
+      <div class="flex justify-between mt-4">
+        <button @click="editExistingSubmission" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Edit</button>
+        <button @click="closeModal" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Cancel</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import {onMounted, ref} from 'vue';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
-import {getAuth, onAuthStateChanged} from "firebase/auth"
+import { ref, onMounted } from 'vue';
+import { collection, getDocs, query, where, addDoc, doc, updateDoc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import db from '../main.js';
 
 const members = ref([]);
 const selectedName = ref('');
 const points = ref(0);
 const reason = ref('');
-
-const fetchMembers = async () => {
-  const membersSnapshot = await getDocs(collection(db, 'members'));
-  membersSnapshot.forEach(memberDoc => {
-    members.value.push(memberDoc.id);
-  });
-};
-
-fetchMembers();
+const existingDocRef = ref(null);
+const showModal = ref(false);
 const userEmail = ref(null);
 let auth;
 
+const fetchMembers = async () => {
+  const membersSnapshot = await getDocs(collection(db, 'members'));
+  members.value = membersSnapshot.docs.map(doc => doc.id);
+};
+
+const checkExistingSubmission = async (email) => {
+  const q = query(collection(db, 'pending'), where('userEmail', '==', email), where('status', '==', 'pending'));
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot && !querySnapshot.empty) {
+    existingDocRef.value = querySnapshot.docs[0];
+    showModal.value = true;
+  }
+};
+
+const editExistingSubmission = () => {
+  points.value = existingDocRef.value.data().points;
+  reason.value = existingDocRef.value.data().reason;
+  closeModal();
+};
+
 onMounted(() => {
   auth = getAuth();
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
       userEmail.value = user.email;
+      await fetchMembers();
+      const emailParts = userEmail.value.split('@')[0];
+      const lastName = emailParts.substring(1);
+      const formattedLastName = lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase();
+      selectedName.value = members.value.find(name => name === formattedLastName) || '';
+      await checkExistingSubmission(userEmail.value);
     }
   });
 });
+
+const closeModal = () => {
+  showModal.value = false;
+};
+
 const submitPoints = async () => {
   if (!selectedName.value || points.value <= 0 || !reason.value) {
     alert('Please fill in all fields.');
     return;
   }
-
-  try {
-    const docRef = await addDoc(collection(db, 'pending'), {
+  if (existingDocRef.value) {
+    await updateDoc(doc(db, 'pending', existingDocRef.value.id), {
+      points: points.value,
+      reason: reason.value,
+      timestamp: new Date()
+    }).then(() => {
+      alert('Your edited points request has been resubmitted for approval.');
+      closeModal();
+      selectedName.value = '';
+      points.value = 0;
+      reason.value = '';
+      existingDocRef.value = null;
+    });
+  } else {
+    // Create a new document
+    await addDoc(collection(db, 'pending'), {
       memberId: selectedName.value,
       points: points.value,
       reason: reason.value,
       status: 'pending',
       timestamp: new Date(),
       userEmail: userEmail.value
+    }).then(() => {
+      alert('Your points request has been submitted for approval.');
+      selectedName.value = '';
+      points.value = 0;
+      reason.value = '';
     });
-
-    selectedName.value = '';
-    points.value = 0;
-    reason.value = '';
-    alert('Your points request has been submitted for approval.');
-  } catch (e) {
-    console.error('Error adding document: ', e);
-    alert('There was an error submitting your points request.');
   }
 };
 </script>
