@@ -10,7 +10,7 @@
       </div>
       <div class="mb-4">
         <label for="points" class="block text-gray-700 text-sm font-bold mb-2">Points:</label>
-        <input type="number" id="points" v-model="points" placeholder="Points" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" max="3">
+        <input type="number" id="points" v-model="points" placeholder="Points" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" max="7">
       </div>
       <div class="mb-4">
         <label for="reason" class="block text-gray-700 text-sm font-bold mb-2">Reason:</label>
