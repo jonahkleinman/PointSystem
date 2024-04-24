@@ -23,10 +23,9 @@
   </div>
   <div v-if="showModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
     <div class="bg-white p-4 rounded">
-      <p class="text-black">You already have a pending points submission. Would you like to edit it?</p>
+      <p class="text-black">You already have a pending points submission. Instead of submitting a new one, please edit this one. Do not remove your original point reason, just add the new one as well.</p>
       <div class="flex justify-between mt-4">
         <button @click="editExistingSubmission" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Edit</button>
-        <button @click="closeModal" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Cancel</button>
       </div>
     </div>
   </div>
