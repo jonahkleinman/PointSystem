@@ -35,6 +35,7 @@
 import { ref, onMounted } from 'vue';
 import { collection, getDocs, query, where, addDoc, doc, updateDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import Swal from 'sweetalert2'
 import db from '../main.js';
 import router from '../router'
 
@@ -56,8 +57,26 @@ const checkExistingSubmission = async (email) => {
   const q = query(collection(db, 'pending'), where('userEmail', '==', email), where('status', '==', 'pending'));
   const querySnapshot = await getDocs(q);
   if (querySnapshot && !querySnapshot.empty) {
-    existingDocRef.value = querySnapshot.docs[0];
-    showModal.value = true;
+    const existingDoc = querySnapshot.docs[0];
+    const existingTimestamp = existingDoc.data().timestamp.toDate();
+    const today = new Date();
+    if (existingTimestamp.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
+      existingDocRef.value = existingDoc;
+      Swal.fire({
+        title: 'Existing Submission Found!',
+        text: 'You already have a pending points submission from today. Instead of submitting a new one, please your old one. Do not remove your original point reason, just add the new one as well.',
+        icon: 'info',
+        showCancelButton: false,
+        confirmButtonText: 'Edit Submission',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          editExistingSubmission();
+        } else {
+          closeModal();
+        }
+      });
+    }
   }
 };
 
@@ -88,41 +107,61 @@ const closeModal = () => {
 
 const submitPoints = async () => {
   if (!selectedName.value || points.value <= 0 || !reason.value) {
-    alert('Please fill in all fields.');
+    Swal.fire('Incomplete Fields', 'Please fill in all fields.', 'error');
     return;
   }
-  if (existingDocRef.value) {
-    await updateDoc(doc(db, 'pending', existingDocRef.value.id), {
-      points: points.value,
-      reason: reason.value,
-      timestamp: new Date()
-    }).then(() => {
-      alert('Your edited points request has been resubmitted for approval.');
+
+  try {
+    if (existingDocRef.value) {
+      await updateDoc(doc(db, 'pending', existingDocRef.value.id), {
+        points: points.value,
+        reason: reason.value,
+        timestamp: new Date()
+      });
+      Swal.fire({
+        title: 'Saved!',
+        text: 'Your edited points request has been resubmitted for approval.',
+        icon: 'success',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
       closeModal();
-      selectedName.value = '';
-      points.value = 0;
-      reason.value = '';
-      existingDocRef.value = null;
+      resetForm();
       router.push('/pending');
-    });
-  } else {
-    await addDoc(collection(db, 'pending'), {
-      memberId: selectedName.value,
-      points: points.value,
-      reason: reason.value,
-      status: 'pending',
-      timestamp: new Date(),
-      userEmail: userEmail.value
-    }).then(() => {
-      alert('Your points request has been submitted for approval.');
-      selectedName.value = '';
-      points.value = 0;
-      reason.value = '';
+    } else {
+      await addDoc(collection(db, 'pending'), {
+        memberId: selectedName.value,
+        points: points.value,
+        reason: reason.value,
+        status: 'pending',
+        timestamp: new Date(),
+        userEmail: userEmail.value
+      });
+      Swal.fire({
+        title: 'Submitted!',
+        text: 'Your points request has been submitted for approval.',
+        icon: 'success',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
+      resetForm();
       router.push('/pending');
-    });
+    }
+  } catch (error) {
+    Swal.fire('Error', 'There was a problem processing your request.', 'error');
   }
 };
+
+const resetForm = () => {
+  selectedName.value = '';
+  points.value = 0;
+  reason.value = '';
+  existingDocRef.value = null;
+};
 </script>
+
 
 <style scoped>
 </style>
