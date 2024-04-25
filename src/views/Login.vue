@@ -23,6 +23,7 @@
 
 <script setup>
   import { ref } from 'vue'
+  import Swal from 'sweetalert2'
   import { signInWithEmailAndPassword, getAuth} from "firebase/auth";
   import { useRouter } from 'vue-router'
  
@@ -35,6 +36,21 @@
     signInWithEmailAndPassword(getAuth(), email.value, password.value)
       .then((data) => {
         router.push('/')
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          }
+        });
+        Toast.fire({
+          icon: "success",
+          title: "Signed in successfully"
+        });
     })
       .catch((error) => {
     switch (error.code) {
