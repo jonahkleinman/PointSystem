@@ -64,7 +64,7 @@ const checkExistingSubmission = async (email) => {
       existingDocRef.value = existingDoc;
       Swal.fire({
         title: 'Existing Submission Found!',
-        text: 'You already have a pending points submission from today. Instead of submitting a new one, please your old one. Do not remove your original point reason, just add the new one as well.',
+        text: 'You already have a pending points submission from today. Instead of submitting a new one, please edit your old one. Do not remove your original point reason, just add the new one as well.',
         icon: 'info',
         showCancelButton: false,
         confirmButtonText: 'Edit Submission',
