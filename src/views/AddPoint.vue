@@ -21,14 +21,6 @@
       </div>
     </form>
   </div>
-  <div v-if="showModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center">
-    <div class="bg-white p-4 rounded">
-      <p class="text-black">You already have a pending points submission. Instead of submitting a new one, please edit this one. Do not remove your original point reason, just add the new one as well.</p>
-      <div class="flex justify-between mt-4">
-        <button @click="editExistingSubmission" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Edit</button>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script setup>
@@ -57,33 +49,10 @@ const checkExistingSubmission = async (email) => {
   const q = query(collection(db, 'pending'), where('userEmail', '==', email), where('status', '==', 'pending'));
   const querySnapshot = await getDocs(q);
   if (querySnapshot && !querySnapshot.empty) {
-    const existingDoc = querySnapshot.docs[0];
-    const existingTimestamp = existingDoc.data().timestamp.toDate();
-    const today = new Date();
-    if (existingTimestamp.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
-      existingDocRef.value = existingDoc;
-      Swal.fire({
-        title: 'Existing Submission Found!',
-        text: 'You already have a pending points submission from today. Instead of submitting a new one, please edit your old one. Do not remove your original point reason, just add the new one as well.',
-        icon: 'info',
-        showCancelButton: false,
-        confirmButtonText: 'Edit Submission',
-        cancelButtonText: 'Cancel'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          editExistingSubmission();
-        } else {
-          closeModal();
-        }
-      });
-    }
+    existingDocRef.value = querySnapshot.docs.find(doc => {
+      return doc.data().timestamp.toDate().setHours(0,0,0,0) === new Date().setHours(0,0,0,0);
+    });
   }
-};
-
-const editExistingSubmission = () => {
-  points.value = existingDocRef.value.data().points;
-  reason.value = existingDocRef.value.data().reason;
-  closeModal();
 };
 
 onMounted(() => {
@@ -101,10 +70,6 @@ onMounted(() => {
   });
 });
 
-const closeModal = () => {
-  showModal.value = false;
-};
-
 const submitPoints = async () => {
   if (!selectedName.value || points.value <= 0 || !reason.value) {
     Swal.fire('Incomplete Fields', 'Please fill in all fields.', 'error');
@@ -113,22 +78,16 @@ const submitPoints = async () => {
 
   try {
     if (existingDocRef.value) {
+      const currentData = existingDocRef.value.data();
+      const updatedPoints = currentData.points + points.value;
+      const updatedReason = `${currentData.reason}, ${points.value} for ${reason.value}`;
+
       await updateDoc(doc(db, 'pending', existingDocRef.value.id), {
-        points: points.value,
-        reason: reason.value,
+        points: updatedPoints,
+        reason: updatedReason,
         timestamp: new Date()
       });
-      Swal.fire({
-        title: 'Saved!',
-        text: 'Your edited points request has been resubmitted for approval.',
-        icon: 'success',
-        timer: 1500,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
-      closeModal();
-      resetForm();
-      router.push('/pending');
+      Swal.fire('Updated!', 'Your points request has been updated with the new submission.', 'success');
     } else {
       await addDoc(collection(db, 'pending'), {
         memberId: selectedName.value,
@@ -138,30 +97,14 @@ const submitPoints = async () => {
         timestamp: new Date(),
         userEmail: userEmail.value
       });
-      Swal.fire({
-        title: 'Submitted!',
-        text: 'Your points request has been submitted for approval.',
-        icon: 'success',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
-      resetForm();
-      router.push('/pending');
+      Swal.fire('Submitted!', 'Your points request has been submitted for approval.', 'success');
     }
+    router.push('/pending');
   } catch (error) {
     Swal.fire('Error', 'There was a problem processing your request.', 'error');
   }
 };
-
-const resetForm = () => {
-  selectedName.value = '';
-  points.value = 0;
-  reason.value = '';
-  existingDocRef.value = null;
-};
 </script>
-
 
 <style scoped>
 </style>
