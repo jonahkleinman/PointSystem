@@ -92,7 +92,7 @@ const submitPoints = async () => {
       await addDoc(collection(db, 'pending'), {
         memberId: selectedName.value,
         points: points.value,
-        reason: reason.value,
+        reason: `${points.value} for ${reason.value}`,
         status: 'pending',
         timestamp: new Date(),
         userEmail: userEmail.value
