@@ -26,15 +26,15 @@
   import Swal from 'sweetalert2'
   import { signInWithEmailAndPassword, getAuth} from "firebase/auth";
   import { useRouter } from 'vue-router'
- 
+
   const email = ref('')
   const password = ref('')
   const errMsg = ref('')
   const router = useRouter()
-  
+
   const login = () => {
     signInWithEmailAndPassword(getAuth(), email.value, password.value)
-      .then((data) => {
+      .then(() => {
         router.push('/')
         const Toast = Swal.mixin({
           toast: true,
@@ -54,6 +54,9 @@
     })
       .catch((error) => {
     switch (error.code) {
+      case 'auth/user-disabled':
+        errMsg.value = 'Your account has been disabled.'
+        break;
       case 'auth/invalid-email':
         errMsg.value = 'Invalid email'
         break;
