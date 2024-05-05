@@ -10,6 +10,12 @@
       </select>
       <input type="text" v-model="searchName" placeholder="Filter by student name" class="block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" />
     </div>
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div v-for="(house, code) in houses" :key="code" class="p-4 border border-gray-200 rounded-lg">
+        <h3 class="font-semibold">{{ house.name }}</h3>
+        <p>Total Points: {{ house.totalPoints }}</p>
+      </div>
+    </div>
     <div class="space-y-4">
       <div v-for="request in filteredRequests" :key="request.id" class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
         <div class="flex justify-between items-center">
@@ -28,7 +34,6 @@
   </div>
 </template>
 
-
 <script>
 import db from '../main.js';
 import { collection, getDocs, updateDoc, doc, runTransaction } from 'firebase/firestore';
@@ -41,6 +46,7 @@ export default {
       deniedRequests: [],
       selectedStatus: 'pending',
       searchName: '',
+      houses: {},
     };
   },
   computed: {
@@ -70,6 +76,9 @@ export default {
     async fetchRequests() {
       try {
         const querySnapshot = await getDocs(collection(db, 'pending'));
+        const membersSnapshot = await getDocs(collection(db, 'members'));
+        this.calculateHousePoints(membersSnapshot);
+
         this.pendingRequests = [];
         this.approvedRequests = [];
         this.deniedRequests = [];
@@ -86,6 +95,28 @@ export default {
       } catch (error) {
         console.error("Error fetching requests:", error);
       }
+    },
+    calculateHousePoints(membersSnapshot) {
+      const houseNames = { a: 'Academic', i: 'Integrity', k: 'Kindness', r: 'Respect' };
+      const challengePoints = { a: 10, i: 3, k: 5, r: 1 };
+      let housesData = {};
+
+      Object.keys(houseNames).forEach(code => {
+        housesData[code] = {
+          name: houseNames[code],
+          totalPoints: challengePoints[code] || 0,
+        };
+      });
+
+      membersSnapshot.forEach(doc => {
+        let memberData = doc.data();
+        let houseCode = memberData.house;
+        if (housesData[houseCode]) {
+          housesData[houseCode].totalPoints += memberData.points;
+        }
+      });
+
+      this.houses = housesData;
     },
     async approveRequest(requestId) {
       const requestRef = doc(db, 'pending', requestId);
