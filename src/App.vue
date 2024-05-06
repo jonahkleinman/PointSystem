@@ -20,7 +20,7 @@ onMounted(() => {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       isLoggedIn.value = true;
-      isAdmin.value = user.uid === 'DB9ljAWIxZUaHSKoVL8jbYao4u32';
+      isAdmin.value = user.uid === 'DB9ljAWIxZUaHSKoVL8jbYao4u32' || user.uid === 'hb3WqrKWccQj1BNDuKqb9KHalkX2';
     } else {
       isLoggedIn.value = false;
       isAdmin.value = false;

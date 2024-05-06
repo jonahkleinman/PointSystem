@@ -74,7 +74,7 @@ router.beforeEach(async (to, from, next) => {
     if (isLoggedIn.value) {
       const userId = auth.currentUser?.uid;
       if (to.name === 'Admin') {
-        if (userId === 'DB9ljAWIxZUaHSKoVL8jbYao4u32') {
+        if (userId === 'DB9ljAWIxZUaHSKoVL8jbYao4u32' || userId === 'hb3WqrKWccQj1BNDuKqb9KHalkX2') {
           next();
         } else {
           next('/');
