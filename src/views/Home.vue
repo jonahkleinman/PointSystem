@@ -91,7 +91,7 @@ export default {
   },
   async created() {
     const houseNames = { a: 'Academic', i: 'Integrity', k: 'Kindness', r: 'Respect' };
-    const challengePoints = { a: 10, i:  13, k: 15, r: 11 };
+    const challengePoints = { a: 10, i: 13, k: 5, r: 11 };
     const membersCollectionRef = collection(db, 'members');
     const membersSnapshot = await getDocs(membersCollectionRef);
     const housesData = {};

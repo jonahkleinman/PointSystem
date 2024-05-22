@@ -98,7 +98,7 @@ export default {
     },
     calculateHousePoints(membersSnapshot) {
       const houseNames = { a: 'Academic', i: 'Integrity', k: 'Kindness', r: 'Respect' };
-      const challengePoints = { a: 10, i: 13, k: 15, r: 11 };
+      const challengePoints = { a: 10, i: 13, k: 5, r: 11 };
       let housesData = {};
 
       Object.keys(houseNames).forEach(code => {
